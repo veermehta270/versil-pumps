@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  .form-label {
+    font-weight: 500;
+    margin-bottom: 0.3rem;
+  }
+  .required {
+    color: red;
+  }
+  .phase-fields {
+    display: none;
+  }
+  /* Visually indicate read-only fields */
+  input:disabled, select:disabled, textarea:disabled {
+    background-color: #e9ecef !important;
+    cursor: not-allowed;
+  }
+</style>
+
+<h3 class="mb-4">{{ 'View Pump Details' if read_only else ('Edit Pump' if pump else 'Add New Pump') }}</h3>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ 'danger' if category == 'danger' else 'success' }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<!-- Read-only Alert when pump is completed -->
+{% if read_only %}
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+  <i class="bi bi-exclamation-triangle-fill"></i>
+  <strong>This pump is COMPLETED and cannot be edited.</strong> All fields are read-only.
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<form method="POST" enctype="multipart/form-data" id="pumpForm">
+  
+  <!-- FIRST ROW: Type and Deadline Date -->
+  <div class="card mb-3">
+    <div class="card-header bg-primary text-white">
+      <strong>Basic Information</strong>
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Type <span class="required">*</span></label>
+          <select class="form-select" name="pump_type" required 
+                  {{ 'disabled' if read_only else ('disabled' if pump else '') }}>
+            <option value="">Select</option>
+            <option value="VERSIL" {{ 'selected' if pump and pump.pump_type == 'VERSIL' else '' }}>VERSIL</option>
+            <option value="OTHER" {{ 'selected' if pump and pump.pump_type == 'OTHER' else '' }}>OTHER</option>
+          </select>
+          {% if pump %}
+          <input type="hidden" name="pump_type" value="{{ pump.pump_type }}">
+          {% endif %}
+        </div>
+        
+        <div class="col-md-6">
+          <label class="form-label">Deadline Date</label>
+          <input type="text" class="form-control" name="deadline_date" 
+                 placeholder="DD/MM/YYYY" value="{{ pump.deadline_date if pump else '' }}"
+                 {{ 'readonly' if read_only else '' }}>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECOND ROW: Pump Name, HP, Phase, Pipe Size -->
+  <div class="card mb-3">
+    <div class="card-header bg-secondary text-white">
+      <strong>Pump Details</strong>
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label">Pump Name <span class="required">*</span></label>
+          <input type="text" class="form-control" name="name" 
+                 value="{{ pump.name if pump else '' }}" required
+                 {{ 'readonly' if read_only else '' }}>
+        </div>
+        
+        <div class="col-md-3">
+          <label class="form-label">HP (Horse Power) <span class="required">*</span></label>
+          <input type="number" step="0.1" class="form-control" name="hp" 
+                 value="{{ pump.hp if pump else '' }}" required
+                 {{ 'readonly' if read_only else '' }}>
+        </div>
+        
+        <div class="col-md-3">
+          <label class="form-label">Phase <span class="required">*</span></label>
+          <select class="form-select" name="phase" id="phaseSelect" required
+                  {{ 'disabled' if read_only else '' }}>
+            <option value="">Select</option>
+            <option value="1" {{ 'selected' if pump and pump.phase == '1' else '' }}>1</option>
+            <option value="2" {{ 'selected' if pump and pump.phase == '2' else '' }}>2</option>
+            <option value="3" {{ 'selected' if pump and pump.phase == '3' else '' }}>3</option>
+          </select>
+        </div>
+        
+        <div class="col-md-3">
+          <label class="form-label">Pipe Size</label>
+          <input type="text" class="form-control" name="pipe_size" 
+                 value="{{ pump.pipe_size if pump else '' }}"
+                 {{ 'readonly' if read_only else '' }}>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOURTH ROW: Stamping, Stamping Grade, Capacitor -->
+  <div class="card mb-3">
+    <div class="card-header bg-warning text-dark">
+      <strong>Additional Specifications</strong>
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Stamping</label>
+          <input type="text" class="form-control" name="stamping" 
+                 value="{{ pump.stamping if pump else '' }}"
+                 {{ 'readonly' if read_only else '' }}>
+        </div>
+        
+        <div class="col-md-4">
+          <label class="form-label">Stamping Grade</label>
+          <input type="text" class="form-control" name="stamping_grade" 
+                 value="{{ pump.stamping_grade if pump else '' }}"
+                 {{ 'readonly' if read_only else '' }}>
+        </div>
+        
+        <div class="col-md-4">
+          <label class="form-label">Capacitor</label>
+          <input type="text" class="form-control" name="capacitor" 
+                 value="{{ pump.capacitor if pump else '' }}"
+                 {{ 'readonly' if read_only else '' }}>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE-SPECIFIC FIELDS -->
+  <!-- Phase 1/2 Fields -->
+  <div class="card mb-3 phase-fields" id="phase12Fields">
+    <div class="card-header bg-info text-white">
+      <strong>Phase 1/2 Gauge Specifications</strong>
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label">R Gauge</label>
+          <input type="text" class="form-control" name="r_gauge" 
+                 value="{{ pump.r_gauge if pump else '' }}"
+                 {{ 'readonly' if read_only else '' }}>
+        </div>
+        
+        <div class="col-md-3">
+          <label class="form-label">R Gauge Weight</label>
+          <input type="number" step="0.0001" class="form-control" name="r_gauge_weight" 
+                 value="{{ pump.r_gauge_weight if pump else '' }}"
+                 {{ 'readonly' if read_only else '' }}>
+        </div>
+        
+        <div class="col-md-3">
+          <label class="form-label">S Gauge</label>
+          <input type="text" class="form-control" name="s_gauge" 
+                 value="{{ pump.s_gauge if pump else '' }}"
+                 {{ 'readonly' if read_only else '' }}>
+        </div>
+        
+        <div class="col-md-3">
+          <label class="form-label">S Gauge Weight</label>
+          <input type="number" step="0.0001" class="form-control" name="s_gauge_weight" 
+                 value="{{ pump.s_gauge_weight if pump else '' }}"
+                 {{ 'readonly' if read_only else '' }}>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 3 Fields -->
+  <div class="card mb-3 phase-fields" id="phase3Fields">
+    <div class="card-header bg-success text-white">
+      <strong>Phase 3 Gauge Specifications</strong>
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Gauge</label>
+          <input type="text" class="form-control" name="gauge" 
+                 value="{{ pump.gauge if pump else '' }}"
+                 {{ 'readonly' if read_only else '' }}>
+        </div>
+        
+        <div class="col-md-6">
+          <label class="form-label">Weight</label>
+          <input type="number" step="0.0001" class="form-control" name="weight" 
+                 value="{{ pump.weight if pump else '' }}"
+                 {{ 'readonly' if read_only else '' }}>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DRAWING FILE -->
+  <div class="card mb-3">
+    <div class="card-header bg-dark text-white">
+      <strong>Drawing File</strong>
+    </div>
+    <div class="card-body">
+      {% if pump and pump.drawing_path %}
+      <div class="mb-2">
+        <label class="form-label">Current File:</label>
+        <div class="alert alert-info p-2">
+          📎 <a href="/uploads/{{ pump.drawing_path }}" target="_blank">{{ pump.drawing_path }}</a>
+        </div>
+      </div>
+      {% if not read_only %}
+      <label class="form-label">Replace File (Optional)</label>
+      <input type="file" class="form-control" name="drawing">
+      {% endif %}
+      {% else %}
+      <label class="form-label">Upload Drawing File</label>
+      <input type="file" class="form-control" name="drawing" {{ 'disabled' if read_only else '' }}>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- BUTTONS -->
+  <div class="mb-4">
+    {% if not read_only %}
+    <button type="submit" class="btn btn-primary">
+      <i class="bi bi-save"></i> {{ 'Save Changes' if pump else 'Create Pump' }}
+    </button>
+    {% endif %}
+    <a href="/pumps" class="btn btn-secondary">← Back to List</a>
+  </div>
+
+</form>
+
+<script>
+// Configuration
+const isReadOnly = {{ 'true' if read_only else 'false' }};
+
+// Show/hide phase-specific fields based on phase selection
+const phaseSelect = document.getElementById('phaseSelect');
+const phase12Fields = document.getElementById('phase12Fields');
+const phase3Fields = document.getElementById('phase3Fields');
+
+function updatePhaseFields() {
+  const phase = phaseSelect.value;
+  
+  // Hide all phase fields first
+  phase12Fields.style.display = 'none';
+  phase3Fields.style.display = 'none';
+  
+  // Show appropriate fields
+  if (phase === '1' || phase === '2') {
+    phase12Fields.style.display = 'block';
+  } else if (phase === '3') {
+    phase3Fields.style.display = 'block';
+  }
+}
+
+// Only attach event listener if not read-only
+if (!isReadOnly) {
+  phaseSelect.addEventListener('change', updatePhaseFields);
+}
+
+// Initialize on page load
+updatePhaseFields();
+
+// Prevent form submission if read-only
+if (isReadOnly) {
+  document.getElementById('pumpForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    alert('This pump is COMPLETED and cannot be edited.');
+    return false;
+  });
+} else {
+  // Validate deadline date format (only if not read-only)
+  document.getElementById('pumpForm').addEventListener('submit', function(e) {
+    const deadlineInput = document.querySelector('input[name="deadline_date"]');
+    const deadline = deadlineInput.value.trim();
+    
+    if (deadline && !deadline.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+      e.preventDefault();
+      alert('Invalid deadline date format. Use DD/MM/YYYY');
+      deadlineInput.focus();
+      return false;
+    }
+  });
+}
+</script>
+
+{% endblock %}

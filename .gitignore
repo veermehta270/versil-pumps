@@ -1,0 +1,30 @@
+# Environment - CRITICAL
+.env
+*.env
+
+# Database
+*.db
+*.sqlite
+
+# Uploads (user files)
+static/uploads/
+uploads/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+env/
+.venv/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

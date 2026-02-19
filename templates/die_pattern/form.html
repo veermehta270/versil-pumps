@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  .table-responsive {
+    overflow-x: auto;
+  }
+  th {
+    white-space: nowrap;
+    font-size: 0.9em;
+  }
+  td input, td select {
+    min-width: 120px;
+  }
+</style>
+
+<h3>Die & Pattern – {{ pump.name }}</h3>
+
+{% if read_only %}
+<div class="alert alert-secondary mt-2">
+  🔒 You have view-only access to this form.
+</div>
+{% endif %}
+
+<div id="alertBox" class="alert d-none"></div>
+
+
+<div class="table-responsive">
+  <table class="table table-bordered table-sm" id="diePatternTable">
+    <thead class="table-light">
+      <tr>
+        <th>Part Name</th>
+        <th>Pattern Cavity</th>
+        <th>Item Weight</th>
+        <th>Making Pattern</th>
+        <th>Complete Pattern</th>
+        <th>Send Foundry</th>
+        <th>Casting Date</th>
+        <th>Drawing Date</th>
+        <th>Casting MC</th>
+        <th>MC Received</th>
+        <th>MC Sample Rate</th>
+        <th>MC Qty Rate</th>
+        <th>Remark</th>
+        <th>Status</th>
+        {% if not read_only %}<th>Action</th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% if items %}
+        {% for item in items %}
+        <tr>
+          <td>
+            <select class="form-select form-select-sm part-select" {% if read_only %}disabled{% else %}required{% endif %}>
+              <option value="">Select Part</option>
+              {% for p in versil_parts %}
+              <option value="{{ p.id }}" {% if p.id == item.part_id %}selected{% endif %}>
+                {{ p.part_name }}
+              </option>
+              {% endfor %}
+            </select>
+          </td>
+          <td><input type="text" class="form-control form-control-sm pattern_cavity" value="{{ item.pattern_cavity or '' }}" {% if read_only %}readonly{% endif %}></td>
+          <td><input type="number" step="0.01" class="form-control form-control-sm item_weight" value="{{ item.item_weight or '' }}" {% if read_only %}readonly{% endif %}></td>
+          <td><input type="text" class="form-control form-control-sm making_pattern_date" value="{{item.making_pattern_date or ''}}" placeholder="DD/MM/YYYY" {% if read_only %}readonly{% endif %}></td>
+          <td><input type="text" class="form-control form-control-sm complete_pattern_date" value="{{item.complete_pattern_date or ''}}" placeholder="DD/MM/YYYY" {% if read_only %}readonly{% endif %}></td>
+          <td><input type="text" class="form-control form-control-sm send_foundry_pattern_date" value="{{item.send_foundry_pattern_date or ''}}" placeholder="DD/MM/YYYY" {% if read_only %}readonly{% endif %}></td>
+          <td><input type="text" class="form-control form-control-sm casting_date"  value="{{item.casting_date or ''}}" placeholder="DD/MM/YYYY" {% if read_only %}readonly{% endif %}></td>
+          <td><input type="text" class="form-control form-control-sm drawing_date"  value="{{item.drawing_date or ''}}" placeholder="DD/MM/YYYY" {% if read_only %}readonly{% endif %}></td>
+          <td><input type="text" class="form-control form-control-sm casting_mc_date" value="{{item.casting_mc_date or ''}}" placeholder="DD/MM/YYYY" {% if read_only %}readonly{% endif %}></td>
+          <td><input type="text" class="form-control form-control-sm mc_received_date" value="{{item.mc_received_date or ''}}" placeholder="DD/MM/YYYY" {% if read_only %}readonly{% endif %}></td>
+          <td><input type="number" step="0.01" class="form-control form-control-sm mc_sample_rate" value="{{ item.mc_sample_rate or '' }}" {% if read_only %}readonly{% endif %}></td>
+          <td><input type="number" step="0.01" class="form-control form-control-sm mc_qty_rate" value="{{ item.mc_qty_rate or '' }}" {% if read_only %}readonly{% endif %}></td>
+          <td><input type="text" class="form-control form-control-sm remark" value="{{ item.remark or '' }}" {% if read_only %}readonly{% endif %}></td>
+          <td class="text-center">
+            <select class="form-select form-select-sm status-select {% if item.status == 'COMPLETED' %}bg-success{% else %}bg-warning{% endif %} text-white fw-semibold" {% if read_only %}disabled{% endif %}>
+              <option value="PENDING" {% if item.status == 'PENDING' or not item.status %}selected{% endif %} class="bg-warning text-white">
+                PENDING
+              </option>
+              <option value="COMPLETED" {% if item.status == 'COMPLETED' %}selected{% endif %} class="bg-success text-white">
+                COMPLETED
+              </option>
+            </select>
+          </td>
+          {% if not read_only %}
+          <td class="text-center">
+            <button class="btn btn-danger btn-sm" onclick="removeRow(this)">×</button>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      {% else %}
+        <!-- Empty state - show one empty row -->
+        {% if not read_only %}
+        <tr>
+          <td>
+            <select class="form-select form-select-sm part-select" required>
+              <option value="">Select Part</option>
+              {% for p in versil_parts %}
+              <option value="{{ p.id }}">{{ p.part_name }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td><input type="text" class="form-control form-control-sm pattern_cavity"></td>
+          <td><input type="number" step="0.01" class="form-control form-control-sm item_weight"></td>
+          <td><input type="text" class="form-control form-control-sm making_pattern_date" placeholder="DD/MM/YYYY"></td>
+          <td><input type="text" class="form-control form-control-sm complete_pattern_date" placeholder="DD/MM/YYYY"></td>
+          <td><input type="text" class="form-control form-control-sm send_foundry_pattern_date" placeholder="DD/MM/YYYY"></td>
+          <td><input type="text" class="form-control form-control-sm casting_date" placeholder="DD/MM/YYYY"></td>
+          <td><input type="text" class="form-control form-control-sm drawing_date" placeholder="DD/MM/YYYY"></td>
+          <td><input type="text" class="form-control form-control-sm casting_mc_date" placeholder="DD/MM/YYYY"></td>
+          <td><input type="text" class="form-control form-control-sm mc_received_date" placeholder="DD/MM/YYYY"></td>
+          <td><input type="number" step="0.01" class="form-control form-control-sm mc_sample_rate"></td>
+          <td><input type="number" step="0.01" class="form-control form-control-sm mc_qty_rate"></td>
+          <td><input type="text" class="form-control form-control-sm remark"></td>
+          <td class="text-center">
+            <select class="form-select form-select-sm status-select bg-warning text-white fw-semibold">
+              <option value="PENDING" selected class="bg-warning text-white">
+                PENDING
+              </option>
+              <option value="COMPLETED" class="bg-success text-white">
+                COMPLETED
+              </option>
+            </select>
+          </td>
+          <td class="text-center">
+            <button class="btn btn-danger btn-sm" onclick="removeRow(this)">×</button>
+          </td>
+        </tr>
+        {% endif %}
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+{% if not read_only %}
+<button class="btn btn-secondary btn-sm mb-3" onclick="addRow()">+ Add Row</button>
+<br>
+<button class="btn btn-success" onclick="saveAll()">💾 Save All</button>
+{% else %}
+<div class="alert alert-info mt-3">
+  <i class="bi bi-info-circle"></i> This form is in view-only mode. Pump status: <strong>{{ pump.status }}</strong>
+</div>
+{% endif %}
+
+<a href="{{ url_for('pump_management', pump_id = pump.id) }}" class="btn btn-secondary">← Back to Pump Form</a>
+
+<!-- Hidden template for part options -->
+<div id="partOptionsTemplate" style="display: none;">
+  <option value="">Select Part</option>
+  {% for p in versil_parts %}
+  <option value="{{ p.id }}">{{ p.part_name }}</option>
+  {% endfor %}
+</div>
+
+<script src="/static/js/die_pattern.js"></script>
+{% endblock %}

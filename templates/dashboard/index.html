@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+  .pump-link {
+    cursor: pointer;
+    color: #0d6efd;
+    text-decoration: none;
+    padding: 8px 12px;
+    display: block;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+  }
+  .pump-link:hover {
+    background-color: #f8f9fa;
+    text-decoration: underline;
+  }
+  .deadline-badge {
+    font-size: 0.85rem;
+    margin-left: 8px;
+  }
+  .section-header {
+    background-color: #343a40;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    border-left: 4px solid #6c757d;
+  }
+  .section-header.pending {
+    border-left-color: #ffc107;
+  }
+  .section-header.completed {
+    border-left-color: #198754;
+  }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3>Dashboard</h3>
+  <a href="/pumps" class="btn btn-outline-primary">
+    <i class="bi bi-table"></i> View Master List
+  </a>
+</div>
+
+<!-- Search and Filters -->
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="row g-3 align-items-center">
+      <div class="col-md-6">
+        <input type="text" id="searchInput" class="form-control" 
+               placeholder="🔍 Search pump by name...">
+      </div>
+      <div class="col-md-4">
+        <select id="typeFilter" class="form-select">
+          <option value="">All Types</option>
+          <option value="VERSIL">VERSIL</option>
+          <option value="OTHER">OTHER</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-secondary w-100" onclick="clearFilters()">
+          <i class="bi bi-x-circle"></i> Clear
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- PENDING PUMPS -->
+  <div class="col-md-6">
+    <div class="section-header pending">
+      <h5 class="mb-0">
+        <i class="bi bi-hourglass-split"></i> Pending Pumps 
+        <span class="badge bg-warning text-dark" id="pendingCount">{{ pending_pumps|length }}</span>
+      </h5>
+    </div>
+    
+    <div class="card">
+      <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+        <div id="pendingList">
+          {% if pending_pumps %}
+            {% for pump in pending_pumps %}
+            <div class="pump-item" 
+                 data-status="PENDING" 
+                 data-type="{{ pump.pump_type }}"
+                 data-name="{{ pump.name|lower }}">
+              <a href="{{ url_for('pump_management', pump_id=pump.id) }}" class="pump-link">
+                <strong>{{ pump.name }}</strong>
+                <span class="badge bg-secondary">{{ pump.pump_type }}</span>
+                {% if pump.deadline_date %}
+                  <span class="deadline-badge badge bg-warning text-dark">
+                    📅 {{ pump.deadline_date }}
+                  </span>
+                {% endif %}
+              </a>
+            </div>
+            {% endfor %}
+          {% else %}
+            <p class="text-muted text-center py-3">No pending pumps</p>
+          {% endif %}
+        </div>
+        <div id="noPendingResults" class="text-muted text-center py-3" style="display: none;">
+          No matching pumps found
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPLETED PUMPS -->
+  <div class="col-md-6">
+    <div class="section-header completed">
+      <h5 class="mb-0">
+        <i class="bi bi-check-circle"></i> Completed Pumps 
+        <span class="badge bg-success" id="completedCount">{{ completed_pumps|length }}</span>
+      </h5>
+    </div>
+    
+    <div class="card">
+      <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+        <div id="completedList">
+          {% if completed_pumps %}
+            {% for pump in completed_pumps %}
+            <div class="pump-item" 
+                 data-status="COMPLETED" 
+                 data-type="{{ pump.pump_type }}"
+                 data-name="{{ pump.name|lower }}">
+              <a href="{{ url_for('pump_management', pump_id=pump.id) }}" class="pump-link">
+                <strong>{{ pump.name }}</strong>
+                <span class="badge bg-secondary">{{ pump.pump_type }}</span>
+                {% if pump.deadline_date %}
+                  <span class="deadline-badge badge bg-success">
+                    📅 {{ pump.deadline_date }}
+                  </span>
+                {% endif %}
+              </a>
+            </div>
+            {% endfor %}
+          {% else %}
+            <p class="text-muted text-center py-3">No completed pumps</p>
+          {% endif %}
+        </div>
+        <div id="noCompletedResults" class="text-muted text-center py-3" style="display: none;">
+          No matching pumps found
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const searchInput = document.getElementById('searchInput');
+const typeFilter = document.getElementById('typeFilter');
+const pumpItems = document.querySelectorAll('.pump-item');
+const pendingCount = document.getElementById('pendingCount');
+const completedCount = document.getElementById('completedCount');
+const noPendingResults = document.getElementById('noPendingResults');
+const noCompletedResults = document.getElementById('noCompletedResults');
+
+function filterPumps() {
+  const searchTerm = searchInput.value.toLowerCase().trim();
+  const typeValue = typeFilter.value;
+  
+  let visiblePending = 0;
+  let visibleCompleted = 0;
+  
+  pumpItems.forEach(item => {
+    const name = item.dataset.name;
+    const type = item.dataset.type;
+    const status = item.dataset.status;
+    
+    const matchesSearch = searchTerm === '' || name.includes(searchTerm);
+    const matchesType = !typeValue || type === typeValue;
+    
+    if (matchesSearch && matchesType) {
+      item.style.display = 'block';
+      if (status === 'PENDING') visiblePending++;
+      if (status === 'COMPLETED') visibleCompleted++;
+    } else {
+      item.style.display = 'none';
+    }
+  });
+  
+  // Update counts
+  pendingCount.textContent = visiblePending;
+  completedCount.textContent = visibleCompleted;
+  
+  // Show/hide "no results" messages
+  noPendingResults.style.display = visiblePending === 0 && document.querySelectorAll('#pendingList .pump-item').length > 0 ? 'block' : 'none';
+  noCompletedResults.style.display = visibleCompleted === 0 && document.querySelectorAll('#completedList .pump-item').length > 0 ? 'block' : 'none';
+}
+
+function clearFilters() {
+  searchInput.value = '';
+  typeFilter.value = '';
+  filterPumps();
+}
+
+// Initial filter on load
+filterPumps();
+
+// Event listeners
+searchInput.addEventListener('input', filterPumps);
+typeFilter.addEventListener('change', filterPumps);
+</script>
+
+{% endblock %}

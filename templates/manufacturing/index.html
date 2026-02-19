@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h3 class="mb-4">Manufacturing Dashboard</h3>
+
+<table class="table table-bordered table-hover align-middle">
+  <thead class="table-light">
+    <tr>
+      <th>Pump Name</th>
+      <th style="width: 200px;">Die & Pattern</th>
+      <th style="width: 200px;">Other Items</th>
+      <th style="width: 200px;">Workflow</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for pump in pumps %}
+    <tr>
+      <td>
+        <strong>{{ pump.name }}</strong>
+      </td>
+
+      <td>
+        <a href="/pumps/{{ pump.id }}/die-pattern"
+           class="btn btn-primary btn-sm w-100">
+          Die & Pattern
+        </a>
+      </td>
+
+      <td>
+        <a href="/pumps/{{ pump.id }}/other-items"
+           class="btn btn-secondary btn-sm w-100">
+          Other Items
+        </a>
+      </td>
+
+      <td>
+        <a href="/pumps/{{ pump.id }}/workflow"
+           class="btn btn-success btn-sm w-100">
+          Workflow
+        </a>
+      </td>
+    </tr>
+    {% endfor %}
+
+    {% if pumps|length == 0 %}
+    <tr>
+      <td colspan="4" class="text-center text-muted">
+        No pumps with approved parts
+      </td>
+    </tr>
+    {% endif %}
+  </tbody>
+</table>
+
+<a href="/dashboard" class="btn btn-outline-secondary">Back to Dashboard</a>
+
+{% endblock %}

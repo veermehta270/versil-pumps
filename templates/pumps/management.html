@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">{{ pump.name }} - Forms</h2>
+    <a href="{{ url_for('pump_list') }}" class="btn btn-outline-secondary">← Back to List</a>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-body text-center py-5">
+          <i class="bi bi-info-circle display-4 text-primary mb-3"></i>
+          <h5 class="card-title">Pump Info</h5>
+          <p class="card-text text-muted">View and edit basic pump details</p>
+          <a href="{{ url_for('pump_info', pump_id=pump.id) }}" class="btn btn-primary mt-3">Open</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-body text-center py-5">
+          <i class="bi bi-list-ul display-4 text-info mb-3"></i>
+          <h5 class="card-title">Add Parts</h5>
+          <p class="card-text text-muted">Manage pump parts list</p>
+          <a href="{{ url_for('add_parts', pump_id=pump.id) }}" class="btn btn-info mt-3 text-white">Open</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-body text-center py-5">
+          <i class="bi bi-box display-4 text-secondary mb-3"></i>
+          <h5 class="card-title">Die Pattern</h5>
+          <p class="card-text text-muted">Die and pattern tracking</p>
+          <a href="{{ url_for('die_pattern_form', pump_id=pump.id) }}" class="btn btn-secondary mt-3 text-white">Open</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-body text-center py-5">
+          <i class="bi bi-basket display-4 text-warning mb-3"></i>
+          <h5 class="card-title">Other Items</h5>
+          <p class="card-text text-muted">External sourced items</p>
+          <a href="{{ url_for('other_items_form', pump_id=pump.id) }}" class="btn btn-warning mt-3 text-white">Open</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-body text-center py-5">
+          <i class="bi bi-arrow-repeat display-4 text-success mb-3"></i>
+          <h5 class="card-title">Workflow</h5>
+          <p class="card-text text-muted">Testing and approval flow</p>
+          <a href="{{ url_for('workflow_form', pump_id=pump.id) }}" class="btn btn-success mt-3 text-white">Open</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-0 border-danger">
+        <div class="card-body text-center py-5">
+          <i class="bi bi-trash display-4 text-danger mb-3"></i>
+          <h5 class="card-title text-danger">Delete Pump</h5>
+          <p class="card-text text-muted">Permanently delete this pump and all related data</p>
+          <button class="btn btn-danger mt-3" data-bs-toggle="modal" data-bs-target="#deleteModal">
+            Delete Pump
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title text-danger" id="deleteModalLabel">Confirm Delete</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete the pump: <strong>{{ pump.name }}</strong>?</p>
+        <p class="text-danger">
+          <i class="bi bi-exclamation-triangle"></i>
+          This will permanently delete all related data.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form action="{{ url_for('delete_pump', pump_id=pump.id) }}" method="POST" style="display: inline;">
+          <button type="submit" class="btn btn-danger">Delete Permanently</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  .table-responsive {
+    overflow-x: auto;
+  }
+  th {
+    white-space: nowrap;
+    font-size: 0.9em;
+  }
+  td input, td select {
+    min-width: 120px;
+  }
+</style>
+
+<h3>Other Items – {{ pump.name }}</h3>
+
+<div id="alertBox" class="alert d-none mt-2"></div>
+
+
+{% if read_only %}
+<div class="alert alert-secondary mt-2">
+  🔒 You have view-only access to this form.
+</div>
+{% endif %}
+
+<div class="table-responsive">
+  <table class="table table-bordered table-sm" id="otherItemTable">
+    <thead class="table-light">
+      <tr>
+        <th>Part Name</th>
+        <th>Material Spec</th>
+        <th>Item Weight</th>
+        <th>Drawing Date</th>
+        <th>Send Party Date</th>
+        <th>Party Name</th>
+        <th>Party Received</th>
+        <th>Inward Date</th>
+        <th>Sample Price</th>
+        <th>Qty Price</th>
+        <th>QC Date</th>
+        <th>QC Status</th>
+        <th>Remark</th>
+        <th>Status</th>
+        {% if not read_only %}<th>Action</th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% if items %}
+        {% for item in items %}
+        <tr>
+          <td>
+            <select class="form-select form-select-sm part-select" {% if read_only %}disabled{% else %}required{% endif %}>
+              <option value="">Select Part</option>
+              {% for p in versil_parts %}
+              <option value="{{ p.id }}" {% if p.id == item.part_id %}selected{% endif %}>
+                {{ p.part_name }}
+              </option>
+              {% endfor %}
+            </select>
+          </td>
+
+          <td>
+            <input type="text" class="form-control form-control-sm material_specification"
+                  value="{{ item.material_specification or '' }}" {% if read_only %}readonly{% endif %}>
+          </td>
+
+          <td>
+            <input type="number" step="0.01" class="form-control form-control-sm item_weight"
+                  value="{{ item.item_weight or '' }}" {% if read_only %}readonly{% endif %}>
+          </td>
+
+          <!-- DATE FIELDS -->
+          <td>
+            <input type="text" class="form-control form-control-sm drawing_date"
+                  value="{{ item.drawing_date or '' }}" placeholder="DD/MM/YYYY" {% if read_only %}readonly{% endif %}>
+          </td>
+
+          <td>
+            <input type="text" class="form-control form-control-sm send_party_drawing_date"
+                  value="{{ item.send_party_drawing_date or '' }}" placeholder="DD/MM/YYYY" {% if read_only %}readonly{% endif %}>
+          </td>
+
+          <td>
+            <input type="text" class="form-control form-control-sm party_name"
+                  value="{{ item.party_name or '' }}" {% if read_only %}readonly{% endif %}>
+          </td>
+
+          <td>
+            <input type="text" class="form-control form-control-sm party_received_date"
+                  value="{{ item.party_received_date or '' }}" placeholder="DD/MM/YYYY" {% if read_only %}readonly{% endif %}>
+          </td>
+
+          <td>
+            <input type="text" class="form-control form-control-sm inward_date"
+                  value="{{ item.inward_date or '' }}" placeholder="DD/MM/YYYY" {% if read_only %}readonly{% endif %}>
+          </td>
+
+          <td>
+            <input type="number" step="0.01" class="form-control form-control-sm sample_price"
+                  value="{{ item.sample_price or '' }}" {% if read_only %}readonly{% endif %}>
+          </td>
+
+          <td>
+            <input type="number" step="0.01" class="form-control form-control-sm qty_price"
+                  value="{{ item.qty_price or '' }}" {% if read_only %}readonly{% endif %}>
+          </td>
+
+          <td>
+            <input type="text" class="form-control form-control-sm qc_date"
+                  value="{{ item.qc_date or '' }}" placeholder="DD/MM/YYYY" {% if read_only %}readonly{% endif %}>
+          </td>
+
+          <td>
+            <select class="form-select form-select-sm qc_status" {% if read_only %}disabled{% endif %}>
+              <option value="">Select</option>
+              <option value="OK" {% if item.qc_status == 'OK' %}selected{% endif %}>OK</option>
+              <option value="REJECTED" {% if item.qc_status == 'REJECTED' %}selected{% endif %}>REJECTED</option>
+            </select>
+          </td>
+
+          <td>
+            <input type="text" class="form-control form-control-sm remark"
+                  value="{{ item.remark or '' }}" {% if read_only %}readonly{% endif %}>
+          </td>
+
+          <td class="text-center">
+            <select class="form-select form-select-sm status-select {% if item.status == 'COMPLETED' %}bg-success{% else %}bg-warning{% endif %} text-white fw-semibold" {% if read_only %}disabled{% endif %}>
+              <option value="PENDING" {% if item.status == 'PENDING' or not item.status %}selected{% endif %} class="bg-warning text-white">
+                PENDING
+              </option>
+              <option value="COMPLETED" {% if item.status == 'COMPLETED' %}selected{% endif %} class="bg-success text-white">
+                COMPLETED
+              </option>
+            </select>
+          </td>
+
+          {% if not read_only %}
+          <td class="text-center">
+            <button class="btn btn-danger btn-sm" onclick="removeRow(this)">×</button>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      {% else %}
+        <!-- Empty state - show one empty row -->
+        {% if not read_only %}
+        <tr>
+          <td>
+            <select class="form-select form-select-sm part-select" required>
+              <option value="">Select Part</option>
+              {% for p in versil_parts %}
+              <option value="{{ p.id }}">{{ p.part_name }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td><input type="text" class="form-control form-control-sm material_specification"></td>
+          <td><input type="number" step="0.01" class="form-control form-control-sm item_weight"></td>
+          <td><input type="text" class="form-control form-control-sm drawing_date" placeholder="DD/MM/YYYY"></td>
+          <td><input type="text" class="form-control form-control-sm send_party_drawing_date" placeholder="DD/MM/YYYY"></td>
+          <td><input type="text" class="form-control form-control-sm party_name"></td>
+          <td><input type="text" class="form-control form-control-sm party_received_date" placeholder="DD/MM/YYYY"></td>
+          <td><input type="text" class="form-control form-control-sm inward_date" placeholder="DD/MM/YYYY"></td>
+          <td><input type="number" step="0.01" class="form-control form-control-sm sample_price"></td>
+          <td><input type="number" step="0.01" class="form-control form-control-sm qty_price"></td>
+          <td><input type="text" class="form-control form-control-sm qc_date" placeholder="DD/MM/YYYY"></td>
+          <td>
+            <select class="form-select form-select-sm qc_status">
+              <option value="">Select</option>
+              <option value="OK">OK</option>
+              <option value="REJECTED">REJECTED</option>
+            </select>
+          </td>
+          <td><input type="text" class="form-control form-control-sm remark"></td>
+          <td class="text-center">
+            <select class="form-select form-select-sm status-select bg-warning text-white fw-semibold">
+              <option value="PENDING" selected class="bg-warning text-white">
+                PENDING
+              </option>
+              <option value="COMPLETED" class="bg-success text-white">
+                COMPLETED
+              </option>
+            </select>
+          </td>
+          <td class="text-center">
+            <button class="btn btn-danger btn-sm" onclick="removeRow(this)">×</button>
+          </td>
+        </tr>
+        {% endif %}
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+{% if not read_only %}
+<button class="btn btn-secondary btn-sm mb-3" onclick="addRow()">+ Add Row</button>
+<br>
+<button class="btn btn-success" onclick="saveAll()">💾 Save All</button>
+{% else %}
+<div class="alert alert-info mt-3">
+  <i class="bi bi-info-circle"></i> This form is in view-only mode. Pump status: <strong>{{ pump.status }}</strong>
+</div>
+{% endif %}
+
+<a href="{{ url_for('pump_management', pump_id = pump.id) }}" class="btn btn-secondary">← Back to Pump Form</a>
+
+
+
+<!-- Hidden template for part options -->
+<div id="partOptionsTemplate" style="display: none;">
+  <option value="">Select Part</option>
+  {% for p in versil_parts %}
+  <option value="{{ p.id }}">{{ p.part_name }}</option>
+  {% endfor %}
+</div>
+
+<script src="/static/js/other_items.js"></script>
+{% endblock %}

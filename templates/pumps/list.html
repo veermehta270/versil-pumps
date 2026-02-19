@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3>Pumps Master List</h3>
+  <a href="/pumps/add" class="btn btn-primary">+ Add New Pump</a>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+
+<div class="table-responsive">
+  <table class="table table-bordered table-hover align-middle">
+    <thead class="table-light">
+      <tr>
+        <th style="width: 200px;">Pump Name</th>
+        <th style="width: 120px;">Pump Info</th>
+        <th style="width: 100px;">Type</th>
+        <th style="width: 100px;">Status</th>
+        <th style="width: 120px;">Deadline</th>
+        <th style="width: 120px;">Add Parts</th>
+        <th style="width: 120px;">Die Pattern</th>
+        <th style="width: 120px;">Other Items</th>
+        <th style="width: 120px;">Workflow</th>
+        <th style="width: 100px;">Actions</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for pump in pumps %}
+      <tr>
+        <td>
+          <a href="{{ url_for('pump_management', pump_id=pump.id) }}" class="text-decoration-none">
+            <strong>{{ pump.name }}</strong>
+          </a>
+          {% if pump.drawing_path %}
+            <br><small class="text-muted">
+              📎 <a href="/uploads/{{ pump.drawing_path }}" target="_blank" class="text-decoration-none">
+                {{ pump.drawing_path }}
+              </a>
+            </small>
+          {% endif %}
+        </td>
+
+        <td class="text-center">
+          <a href="{{ url_for('pump_info', pump_id=pump.id) }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-info-circle"></i> Edit
+          </a>
+        </td>
+        
+        <td>{{ pump.pump_type }}</td>
+        
+        <td>
+          {% if pump.status == 'PENDING' %}
+            <span class="badge bg-warning text-dark">Pending</span>
+          {% elif pump.status == 'COMPLETED' %}
+            <span class="badge bg-success text-white">Completed</span>
+          {% else %}
+            <span class="badge bg-secondary text-white">{{ pump.status }}</span>
+          {% endif %}
+        </td>
+
+        <td class="text-center">
+          {% if pump.deadline_date %}
+            <span class="text-muted">📅 {{ pump.deadline_date }}</span>
+          {% else %}
+            <span class="text-muted">—</span>
+          {% endif %}
+        </td>
+
+        <td class="text-center">
+          <a href="/pumps/{{ pump.id }}/parts" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-list-ul"></i> Parts
+          </a>
+        </td>
+
+        <td class="text-center">
+          <a href="/pumps/{{ pump.id }}/die-pattern" class="btn btn-sm btn-outline-info">
+            <i class="bi bi-box"></i> Die
+          </a>
+        </td>
+
+        <td class="text-center">
+          <a href="/pumps/{{ pump.id }}/other-items" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-basket"></i> Other
+          </a>
+        </td>
+
+        <td class="text-center">
+          <a href="/pumps/{{ pump.id }}/workflow" class="btn btn-sm btn-outline-success">
+            <i class="bi bi-arrow-repeat"></i> Flow
+          </a>
+        </td>
+
+        <td class="text-center">
+          <button class="btn btn-sm btn-danger" 
+                  data-bs-toggle="modal" 
+                  data-bs-target="#deleteModal{{ pump.id }}">
+            <i class="bi bi-trash"></i>
+          </button>
+        </td>
+      </tr>
+
+      <!-- Delete Modal for this pump -->
+      <div class="modal fade" id="deleteModal{{ pump.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title text-danger">Confirm Delete</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p>Are you sure you want to delete the pump: <strong>{{ pump.name }}</strong>?</p>
+              <p class="text-danger">
+                <i class="bi bi-exclamation-triangle"></i>
+                This action is permanent and will delete all related data.
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <form action="{{ url_for('delete_pump', pump_id=pump.id) }}" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-danger">Delete Permanently</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {% endfor %}
+
+      {% if pumps|length == 0 %}
+      <tr>
+        <td colspan="10" class="text-center text-muted py-4">
+          No pumps found. Click "Add New Pump" to create one.
+        </td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+<a href="/dashboard" class="btn btn-outline-secondary mt-3">← Back to Dashboard</a>
+
+{% endblock %}
