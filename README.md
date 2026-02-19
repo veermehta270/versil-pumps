@@ -45,3 +45,10 @@ pump R&D workflows, part approvals, die patterns, and testing cycles.
 ```bash
    python app.py
 ```
+
+## Preview
+<img width="1912" height="878" alt="image" src="https://github.com/user-attachments/assets/5b0d459f-c983-4630-9cf7-f6c87ea42d52" />
+<img width="1917" height="784" alt="image" src="https://github.com/user-attachments/assets/b0fbdda3-f52e-47b3-9398-840a6a678bf1" />
+<img width="1917" height="952" alt="image" src="https://github.com/user-attachments/assets/9a65f16e-87c4-45a9-aa39-8ff87a17aeab" />
+<img width="1915" height="799" alt="image" src="https://github.com/user-attachments/assets/0b78ca2d-e2d5-4894-bab7-44a24057ae96" />
+
